@@ -96,30 +96,39 @@ class movie_push():
 
     #推送更新的电影
     def push_updated_movies(self, new_movies):
+        #如果是首次运行不推送信息
+        if self.firstRun:
+            self.firstRun = False
+            return
+
         #如果数组为空，则不推送
         if not len(new_movies):
             return
 
-        title_str = "【更新】"
+        title_str = "【电影更新】"
         desp_str = ""
 
         if len(new_movies) == 1:
             title_str += new_movies[0]['name']
-            desp_str += "[" + new_movies[0]['href'] + "]" + new_movies[0]['name']
+            desp_str += "[ " + new_movies[0]['href'] + " ]" + new_movies[0]['name']
         else:
             for movie in new_movies:
                 title_str += movie['name'][:5] + '-'
-                desp_str += "[" + movie['href'] + "]" + movie['name'] + "-"
+                #网址后面注意加空格，否则后续文字将被解析成网址
+                desp_str += "[ " + movie['href'] + " ]" + movie['name'] + " -"
 
         title_str = title_str.strip("-")
         desp_str = desp_str.strip("-")
 
         #发起请求
-        r = requests.post(self.push_url, data={"text": title_str, "desp": desp_str})
-        result_data = r.json()
+        try:
+            r = requests.post(self.push_url, data={"text": title_str, "desp": desp_str})
+            result_data = r.json()
 
-        if result_data['errno'] == 0:
-            print("微信消息推送成功！")
+            if result_data['errno'] == 0:
+                print("电影更新微信推送成功！")
+        except:
+            print("推送微信消息时发生异常...")
 
     #存储更新的电影到文件
     def store_updated_movies(self, new_movies_str):
@@ -168,7 +177,7 @@ class movie_push():
 
             # 分别获取两个网站的电影
             time_now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            print(time_now + "开始获取电影更新")
+            print(time_now + "获取电影更新开始...")
 
             dytt_movies = dyttObj.getMovies()
             seehd_movies = seehdObj.getMovies()
@@ -178,6 +187,7 @@ class movie_push():
             self.movies_deal(movies)
 
             # 延时指定时间后再次获取电影数据
+            print(time_now + "获取电影更新结束...休眠中...")
             time.sleep(self.check_update_time * 60)
 
 movie_push = movie_push()

@@ -2,6 +2,7 @@
 import requests
 from bs4 import BeautifulSoup
 import re
+import time
 
 class dytt():
     def __init__(self):
@@ -10,32 +11,33 @@ class dytt():
         self.headers = {
             'User-Agent': user_agent
         }
-        self.s = requests.session()
-        self.error = 0
+        self.errors = 0
+        self.request_result = ""
 
-    def getDownloadUrl(self, url):
-        r = self.s.get(url, headers=self.headers)
-        r.encoding = "gb2312"
+    #用于发送网络请求
+    def request_tool(self):
+        try:
+            r = requests.get(url=self.index_url, headers=self.headers)
+            r.encoding = "gb2312"
+            self.request_result = r.text
+            return True
+        except:
+            return False
 
-        con = BeautifulSoup(r.text, "html.parser")
-        a = con.select("#Zoom span table tbody tr td a")
-
-        if a:
-            return a[0].text
-        #如果返回的数据里缺少下载地址，则重试3次
-        else:
-            self.error += 1
-
-            if self.error < 3:
-                self.getDownloadUrl(url)
-            else:
-                self.error = 0
-
+    #用于获取电影信息
     def getMovies(self):
-        r = self.s.get(url=self.index_url, headers=self.headers)
-        r.encoding="gb2312"
+        #请求三次服务器，若都失败，则跳过(返回空数组)
+        self.errors = 0
+        while not self.request_tool():
+            if self.errors  > 3:
+                print("刷了3次电影天堂都失败了，下次再来！")
+                return []
+            else:
+                self.errors += 1
 
-        bs = BeautifulSoup(r.text, "html.parser")
+            time.sleep(5) #休息5s
+
+        bs = BeautifulSoup(self.request_result, "html.parser")
 
         contents = bs.select(".co_content8")
         target_tds = contents[0].select("td")
@@ -48,9 +50,7 @@ class dytt():
                 name = re.search(r"《(.+)》", name).groups()[0]
                 href = self.index_url + td_a[1].get("href")
 
-                download_url = self.getDownloadUrl(href)
-
-                obj = {"name": name, "href": download_url, "from": "电影天堂"}
+                obj = {"name": name, "href": href, "from": "电影天堂"}
                 resultArr.append(obj)
 
         return resultArr
