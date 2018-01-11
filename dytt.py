@@ -14,7 +14,7 @@ class dytt():
         self.error = 0
 
     def getDownloadUrl(self, url):
-        r = self.s.get(url)
+        r = self.s.get(url, headers=self.headers)
         r.encoding = "gb2312"
 
         con = BeautifulSoup(r.text, "html.parser")

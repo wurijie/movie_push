@@ -1,36 +1,74 @@
 #--*-- encoding: UTF-8 --*--
 import requests
-import seehd
-import dytt
 import hashlib
 import time
 import os
+import configparser
+import seehd
+import dytt
 
 class movie_push():
     def __init__(self):
-        #server酱推送地址
-        self.ftqq_url = input("请输入server酱地址推送：(申请地址http://sc.ftqq.com)\n")
-        if not self.check_push_url(self.ftqq_url.strip()):
-            exit("推送地址有误，请检查！")
+        #server酱推送地址处理,不存在则输入
+        if not self.get_stored_push_url():
+            push_url = input("请输入server酱地址推送：(申请地址http://sc.ftqq.com)\n")
+            if not self.check_push_url(push_url):
+                exit("推送地址有误，请检查！")
+
+            self.store_push_url()
 
         #定义网站更新检查时间间隔，默认值30分钟
         self.check_update_time = 30
         #当前是否首次运行
         self.firstRun = False
 
+    #读取已存储的推送地址
+    def get_stored_push_url(self):
+        if os.path.exists("config.cfg"):
+            cf = configparser.RawConfigParser()
+            cf.read("config.cfg")
+            try:
+                push_url = cf.get("push", "url")
+                if push_url:
+                    self.push_url = push_url
+                    return True
+            except:
+                return False
+
+        return False
+
+    #保存 微信推送地址 到配置文件
+    def store_push_url(self):
+        cf = configparser.RawConfigParser()
+        cf['push'] = {"url": self.push_url}
+
+        try:
+            with open("config.cfg", "w+") as fd:
+                cf.write(fd)
+                return True
+        except:
+            return False
+
+        return True
+
     #检查用户输入的推送地址是否有误
-    def check_push_url(self, url):
-        if not url:
+    def check_push_url(self, push_url):
+        if not push_url:
             return False
 
         post_data = {
             "text": "测试信息",
             "desp": "电影更新推送测试"+str(time.time())
         }
-        r = requests.post(url, post_data)
+        r = requests.post(push_url, post_data)
         result_data = r.json()
         if result_data['errno'] == 0:
             print("验证通过!")
+
+            self.push_url = push_url
+            if self.store_push_url():
+                print("保存微信推送地址成功！")
+
             return True
         else:
             return False
@@ -77,7 +115,7 @@ class movie_push():
         desp_str = desp_str.strip("-")
 
         #发起请求
-        r = requests.post(self.ftqq_url, data={"text": title_str, "desp": desp_str})
+        r = requests.post(self.push_url, data={"text": title_str, "desp": desp_str})
         result_data = r.json()
 
         if result_data['errno'] == 0:
