@@ -76,7 +76,7 @@ class movie_push():
     #电影网站获取数据处理
     def movies_deal(self, movies):
         exist_movies = self.getStoredMovies()
-        fetched_movies = self.movies_encode(movies)
+        fetched_movies = self.movies_encode(movies) #此处先加密，方便后面比较
 
         #找到新发布的电影
         new_movies = []
@@ -89,6 +89,7 @@ class movie_push():
             except:
                 new_movies.append(movies[i])
                 new_movies_str.append(fetched_movies[i]+"\n") #每个元素后加入回车，为后面写入文件做准备
+                exist_movies.append(fetched_movies[i])         #将当前处理成功的元素放入已存在电影数组中，去重
 
         #推送和保存更新的电影
         self.push_updated_movies(new_movies)
