@@ -45,7 +45,7 @@ class dytt():
         resultArr = []
         for td in target_tds:
             td_a = td.select("a")
-            if len(td_a):
+            if len(td_a)>1:
                 name = td_a[1].text
                 name = re.search(r"《(.+)》", name).groups()[0]
                 href = self.index_url + td_a[1].get("href")

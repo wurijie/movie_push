@@ -99,6 +99,8 @@ class movie_push():
     def push_updated_movies(self, new_movies):
         #如果是首次运行不推送信息
         if self.firstRun:
+            print("首次运行，检测到新电影，由于为全量电影暂不推送，内容如下：")
+            print(new_movies)
             self.firstRun = False
             return
 

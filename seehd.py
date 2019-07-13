@@ -44,7 +44,7 @@ class seehd():
             for title in html_titles:
                 # 只抓取最新的影片
                 type = title.select("a:nth-of-type(2)")[0].string
-                if not type == "[新片分享]":
+                if not type == "[网友分享电影]":
                     continue
 
                 #优化电影名称
