@@ -15,7 +15,7 @@ class seehd():
     #网络请求专用工具
     def request_tool(self):
         try:
-            r = requests.get(self.index_url, headers = self.headers)
+            r = requests.get(self.index_url, headers = self.headers, timeout=15)
             r.encoding = "utf-8"
             self.request_result = r.text
             return True
